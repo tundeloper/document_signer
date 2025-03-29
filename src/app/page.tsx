@@ -1,103 +1,150 @@
-import Image from "next/image";
+"use client"
+import { useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { Button, IconButton, Tooltip, MenuItem, Select } from "@mui/material";
+import { Card, CardContent } from "@mui/material";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import BorderColorIcon from "@mui/icons-material/BorderColor";
+import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import { motion } from "framer-motion";
 
-export default function Home() {
+interface Annotation {
+  type: "highlight" | "underline" | "signature" | "comment";
+  position: { x: number; y: number };
+  color?: string;
+  text?: string;
+}
+
+export default function DocumentSigner() {
+  const [file, setFile] = useState<string | null>(null);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [mode, setMode] = useState<"highlight" | "underline" | "signature" | "comment" | null>(null);
+  const [color, setColor] = useState<string>("yellow");
+  const [comment, setComment] = useState<string>("");
+
+  const onDrop = (acceptedFiles: File[]) => {
+    const pdfFiles = acceptedFiles.filter(file => file.type === "application/pdf");
+    if (pdfFiles.length > 0) {
+      const uploadedFileURL = URL.createObjectURL(pdfFiles[0]);
+      setFile(uploadedFileURL);
+      window.open(uploadedFileURL, "_blank");
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "application/pdf": [] },
+    multiple: true
+  });
+
+  const handleAnnotation = (type: "highlight" | "underline" | "signature" | "comment") => {
+    setMode(type);
+  };
+
+  const addAnnotation = (event: React.MouseEvent) => {
+    if (!mode) return;
+    const newAnnotation: Annotation = {
+      type: mode,
+      position: { x: event.clientX, y: event.clientY },
+      color: mode === "highlight" || mode === "underline" ? color : undefined,
+      text: mode === "comment" ? comment : undefined,
+    };
+    setAnnotations([...annotations, newAnnotation]);
+    if (mode === "comment") setComment("");
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="p-6 flex flex-col items-center space-y-6">
+      <h1 className="text-2xl font-bold">Document Signer & Annotation Tool</h1>
+      <div className="flex space-x-4">
+        {/* <Tooltip title="Upload PDF">
+          <IconButton color="primary" onClick={() => document.getElementById("file-input")?.click()}>
+            <UploadFileIcon />
+          </IconButton>
+        </Tooltip> */}
+        <input
+          id="file-input"
+          type="file"
+          accept="application/pdf"
+          multiple
+          className="hidden"
+          onChange={(e) => onDrop(Array.from(e.target.files || []))}
         />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <Tooltip title="Highlight">
+          <IconButton color={mode === "highlight" ? "secondary" : "default"} onClick={() => handleAnnotation("highlight")}>
+            <BorderColorIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Underline">
+          <IconButton color={mode === "underline" ? "secondary" : "default"} onClick={() => handleAnnotation("underline")}>
+            <FormatUnderlinedIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Signature">
+          <IconButton color={mode === "signature" ? "secondary" : "default"} onClick={() => handleAnnotation("signature")}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Comment">
+          <IconButton color={mode === "comment" ? "secondary" : "default"} onClick={() => handleAnnotation("comment")}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Export PDF">
+          <IconButton color="success" onClick={() => console.log("Export PDF")}> 
+            <SaveIcon />
+          </IconButton>
+        </Tooltip>
+      </div>
+      {mode && (mode === "highlight" || mode === "underline") && (
+        <Select value={color} onChange={(e) => setColor(e.target.value)}>
+          <MenuItem value="yellow">Yellow</MenuItem>
+          <MenuItem value="red">Red</MenuItem>
+          <MenuItem value="blue">Blue</MenuItem>
+        </Select>
+      )}
+      {mode === "comment" && (
+        <input
+          type="text"
+          placeholder="Enter comment"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          className="border p-2"
+        />
+      )}
+      <Card
+        {...getRootProps()}
+        className={`w-full max-w-4xl h-[600px] flex items-center justify-center border-2 border-dashed cursor-pointer transition-all duration-300 ${isDragActive ? "border-blue-500 bg-blue-100" : "border-gray-300"}`}
+        onClick={addAnnotation}
+      >
+        <CardContent className="w-full h-full flex items-center justify-center relative">
+          <input {...getInputProps()} />
+          {file ? (
+            <iframe src={file} className="w-full h-full" title="PDF Viewer" />
+          ) : (
+            <motion.p
+              initial={{ opacity: 0.6 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-gray-500"
+              onClick={() => document.getElementById("file-input")?.click()}
+            >
+              {isDragActive ? "Drop the PDF here..." : "Drag & drop a PDF or click to upload"}
+            </motion.p>
+          )}
+          {annotations.map((ann, index) => (
+            <div
+              key={index}
+              style={{ position: "absolute", left: ann.position.x, top: ann.position.y, color: ann.color }}
+              className={ann.type === "underline" ? "border-b-2" : "bg-opacity-50 p-1"}
+            >
+              {ann.text || "✍"}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
