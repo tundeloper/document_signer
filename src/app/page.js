@@ -1,9 +1,8 @@
-"use client"
+"use client";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { IconButton, Tooltip, MenuItem, Select } from "@mui/material";
 import { Card, CardContent } from "@mui/material";
-// import UploadFileIcon from "@mui/icons-material/UploadFile";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FormatUnderlinedIcon from "@mui/icons-material/FormatUnderlined";
 import EditIcon from "@mui/icons-material/Edit";
@@ -20,7 +19,7 @@ interface Annotation {
 export default function DocumentSigner() {
   const [file, setFile] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [mode, setMode] = useState<"highlight" | "underline" | "signature" | "comment" | null>(null);
+  const [mode, setMode] = useState<Annotation["type"] | null>(null);
   const [color, setColor] = useState<string>("yellow");
   const [comment, setComment] = useState<string>("");
 
@@ -36,14 +35,14 @@ export default function DocumentSigner() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "application/pdf": [] },
-    multiple: true
+    multiple: true,
   });
 
-  const handleAnnotation = (type: "highlight" | "underline" | "signature" | "comment") => {
+  const handleAnnotation = (type: Annotation["type"]) => {
     setMode(type);
   };
 
-  const addAnnotation = (event: React.MouseEvent) => {
+  const addAnnotation = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!mode) return;
     const newAnnotation: Annotation = {
       type: mode,
@@ -51,7 +50,7 @@ export default function DocumentSigner() {
       color: mode === "highlight" || mode === "underline" ? color : undefined,
       text: mode === "comment" ? comment : undefined,
     };
-    setAnnotations([...annotations, newAnnotation]);
+    setAnnotations(prev => [...prev, newAnnotation]);
     if (mode === "comment") setComment("");
   };
 
@@ -59,18 +58,13 @@ export default function DocumentSigner() {
     <div className="p-6 flex flex-col items-center space-y-6">
       <h1 className="text-2xl font-bold">Document Signer & Annotation Tool</h1>
       <div className="flex space-x-4">
-        {/* <Tooltip title="Upload PDF">
-          <IconButton color="primary" onClick={() => document.getElementById("file-input")?.click()}>
-            <UploadFileIcon />
-          </IconButton>
-        </Tooltip> */}
         <input
           id="file-input"
           type="file"
           accept="application/pdf"
           multiple
           className="hidden"
-          onChange={(e) => onDrop(Array.from(e.target.files || []))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onDrop(Array.from(e.target.files || []))}
         />
         <Tooltip title="Highlight">
           <IconButton color={mode === "highlight" ? "secondary" : "default"} onClick={() => handleAnnotation("highlight")}>
@@ -99,7 +93,7 @@ export default function DocumentSigner() {
         </Tooltip>
       </div>
       {mode && (mode === "highlight" || mode === "underline") && (
-        <Select value={color} onChange={(e) => setColor(e.target.value)}>
+        <Select value={color} onChange={(e: React.ChangeEvent<{ value: unknown }>) => setColor(e.target.value as string)}>
           <MenuItem value="yellow">Yellow</MenuItem>
           <MenuItem value="red">Red</MenuItem>
           <MenuItem value="blue">Blue</MenuItem>
@@ -110,7 +104,7 @@ export default function DocumentSigner() {
           type="text"
           placeholder="Enter comment"
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
           className="border p-2"
         />
       )}
@@ -129,7 +123,7 @@ export default function DocumentSigner() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
               className="text-gray-500"
-              onClick={() => document.getElementById("file-input")?.click()}
+              onClick={() => document.getElementById("file-input")?.click() ?? undefined}
             >
               {isDragActive ? "Drop the PDF here..." : "Drag & drop a PDF or click to upload"}
             </motion.p>
