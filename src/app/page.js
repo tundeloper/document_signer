@@ -9,21 +9,21 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import { motion } from "framer-motion";
 
-interface Annotation {
-  type: "highlight" | "underline" | "signature" | "comment";
-  position: { x: number; y: number };
-  color?: string;
-  text?: string;
-}
+// interface Annotation {
+//   type: "highlight" | "underline" | "signature" | "comment";
+//   position: { x: number; y: number };
+//   color?: string;
+//   text?: string;
+// }
 
 export default function DocumentSigner() {
   const [file, setFile] = useState<string | null>(null);
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [annotations, setAnnotations] = useState>([]);
   const [mode, setMode] = useState<Annotation["type"] | null>(null);
   const [color, setColor] = useState<string>("yellow");
   const [comment, setComment] = useState<string>("");
 
-  const onDrop = (acceptedFiles: File[]) => {
+  const onDrop = (acceptedFiles) => {
     const pdfFiles = acceptedFiles.filter(file => file.type === "application/pdf");
     if (pdfFiles.length > 0) {
       const uploadedFileURL = URL.createObjectURL(pdfFiles[0]);
@@ -38,13 +38,13 @@ export default function DocumentSigner() {
     multiple: true,
   });
 
-  const handleAnnotation = (type: Annotation["type"]) => {
+  const handleAnnotation = (type) => {
     setMode(type);
   };
 
-  const addAnnotation = (event: React.MouseEvent<HTMLDivElement>) => {
+  const addAnnotation = (event) => {
     if (!mode) return;
-    const newAnnotation: Annotation = {
+    const newAnnotation = {
       type: mode,
       position: { x: event.clientX, y: event.clientY },
       color: mode === "highlight" || mode === "underline" ? color : undefined,
@@ -64,7 +64,7 @@ export default function DocumentSigner() {
           accept="application/pdf"
           multiple
           className="hidden"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onDrop(Array.from(e.target.files || []))}
+          onChange={(e) => onDrop(Array.from(e.target.files || []))}
         />
         <Tooltip title="Highlight">
           <IconButton color={mode === "highlight" ? "secondary" : "default"} onClick={() => handleAnnotation("highlight")}>
@@ -93,7 +93,7 @@ export default function DocumentSigner() {
         </Tooltip>
       </div>
       {mode && (mode === "highlight" || mode === "underline") && (
-        <Select value={color} onChange={(e: React.ChangeEvent<{ value: unknown }>) => setColor(e.target.value as string)}>
+        <Select value={color} onChange={(e) => setColor(e.target.value)}>
           <MenuItem value="yellow">Yellow</MenuItem>
           <MenuItem value="red">Red</MenuItem>
           <MenuItem value="blue">Blue</MenuItem>
@@ -104,7 +104,7 @@ export default function DocumentSigner() {
           type="text"
           placeholder="Enter comment"
           value={comment}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
+          onChange={(e) => setComment(e.target.value)}
           className="border p-2"
         />
       )}
